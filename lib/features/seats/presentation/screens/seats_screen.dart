@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../bookings/presentation/providers/booking_provider.dart';
+import '../../../bookings/presentation/widgets/congratulations_dialog.dart';
 import '../../../trips/domain/entities/trip.dart';
 import '../../domain/entities/seat.dart';
 import '../providers/seats_provider.dart';
@@ -86,6 +89,59 @@ class _SeatsScreenState extends State<SeatsScreen> {
     _showBookingConfirmationDialog(selectedSeat);
   }
 
+  Future<void> _processBooking(BuildContext sheetContext, Seat seat) async {
+    final bookingProvider = context.read<BookingProvider>();
+    final auth = context.read<AuthProvider>();
+
+    final booking = await bookingProvider.createBooking(
+      tripId: widget.trip.id,
+      seatId: seat.id,
+      passengerId: auth.user?.id,
+    );
+
+    if (!mounted) return;
+
+    if (booking != null) {
+      // Dismiss confirmation bottom sheet
+      if (sheetContext.mounted) {
+        Navigator.of(sheetContext).pop();
+      }
+
+      // Refresh seats to reflect newly booked seat
+      context.read<SeatsProvider>().loadSeats(widget.trip.id, force: true);
+
+      // Show congratulations dialog with My Trips option
+      if (mounted) {
+        CongratulationsDialog.show(
+          context,
+          booking: booking,
+          seatNumber: seat.seatNumber,
+          flightNumber: widget.trip.flightNumber,
+        );
+      }
+    } else {
+      final error =
+          bookingProvider.bookingError ?? 'Booking failed. Please try again.';
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.error_outline, color: Colors.white, size: 20),
+              const SizedBox(width: 8),
+              Expanded(child: Text(error)),
+            ],
+          ),
+          backgroundColor: Colors.red.shade700,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
+    }
+  }
+
   void _showBookingConfirmationDialog(Seat seat) {
     final theme = Theme.of(context);
 
@@ -96,103 +152,108 @@ class _SeatsScreenState extends State<SeatsScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (ctx) {
-        return Padding(
-          padding: EdgeInsets.only(
-            left: 20,
-            right: 20,
-            top: 20,
-            bottom: MediaQuery.of(ctx).padding.bottom + 20,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.outlineVariant,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
+        return StatefulBuilder(
+          builder: (bottomSheetCtx, setSheetState) {
+            final isBooking = context.watch<BookingProvider>().isBooking;
+
+            return Padding(
+              padding: EdgeInsets.only(
+                left: 20,
+                right: 20,
+                top: 20,
+                bottom: MediaQuery.of(ctx).padding.bottom + 20,
               ),
-              const SizedBox(height: 16),
-              Text(
-                'Confirm Seat Booking',
-                style: theme.textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Flight: ${widget.trip.flightNumber.isEmpty ? '#${widget.trip.id}' : widget.trip.flightNumber} · ${widget.trip.aircraftName}',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 20),
-              Card(
-                elevation: 0,
-                color: theme.colorScheme.surfaceContainerLow,
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    children: [
-                      _DetailRow(
-                        label: 'Selected Seat',
-                        value: seat.seatNumber,
-                        isBold: true,
-                      ),
-                      const Divider(height: 16),
-                      _DetailRow(
-                        label: 'Class',
-                        value: seat.seatClass.toUpperCase(),
-                      ),
-                      const Divider(height: 16),
-                      _DetailRow(
-                        label: 'Price',
-                        value: '৳${seat.price.toStringAsFixed(2)}',
-                        valueColor: theme.colorScheme.primary,
-                        isBold: true,
-                      ),
-                      const Divider(height: 16),
-                      _DetailRow(
-                        label: 'Status',
-                        value: 'Available for Booking',
-                        valueColor: Colors.green,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-              FilledButton.icon(
-                onPressed: () {
-                  Navigator.of(ctx).pop();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        'Seat ${seat.seatNumber} selected successfully! Ready for booking.',
-                      ),
-                      backgroundColor: Colors.green.shade700,
-                      behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.outlineVariant,
+                        borderRadius: BorderRadius.circular(2),
                       ),
                     ),
-                  );
-                },
-                icon: const Icon(Icons.check_circle_outline),
-                label: const Text('Confirm Booking'),
-                style: FilledButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Confirm Seat Booking',
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Flight: ${widget.trip.flightNumber.isEmpty ? '#${widget.trip.id}' : widget.trip.flightNumber} · ${widget.trip.aircraftName}',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 20),
+                  Card(
+                    elevation: 0,
+                    color: theme.colorScheme.surfaceContainerLow,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        children: [
+                          _DetailRow(
+                            label: 'Selected Seat',
+                            value: seat.seatNumber,
+                            isBold: true,
+                          ),
+                          const Divider(height: 16),
+                          _DetailRow(
+                            label: 'Class',
+                            value: seat.seatClass.toUpperCase(),
+                          ),
+                          const Divider(height: 16),
+                          _DetailRow(
+                            label: 'Price',
+                            value: '৳${seat.price.toStringAsFixed(2)}',
+                            valueColor: theme.colorScheme.primary,
+                            isBold: true,
+                          ),
+                          const Divider(height: 16),
+                          _DetailRow(
+                            label: 'Status',
+                            value: 'Available for Booking',
+                            valueColor: Colors.green,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  FilledButton.icon(
+                    onPressed: isBooking
+                        ? null
+                        : () => _processBooking(ctx, seat),
+                    icon: isBooking
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Icon(Icons.check_circle_outline),
+                    label: Text(
+                      isBooking ? 'Processing Booking...' : 'Confirm & Book Seat',
+                    ),
+                    style: FilledButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            );
+          },
         );
       },
     );

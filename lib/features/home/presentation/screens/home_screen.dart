@@ -1,3 +1,4 @@
+import 'package:air_plane_ticketing/features/bookings/presentation/screens/my_bookings_screen.dart';
 import 'package:air_plane_ticketing/features/trips/presentation/screens/trips_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -6,24 +7,38 @@ import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../auth/presentation/screens/login_screen.dart';
 import '../../../profile/presentation/screens/profile_screen.dart';
 
-
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final int initialIndex;
+
+  const HomeScreen({
+    super.key,
+    this.initialIndex = 0,
+  });
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _selectedIndex = 0;
+  late int _selectedIndex;
 
-  final List<Widget> _screens =  [
-    TripsScreen(),
-    MyTripScreen(),
-    ProfileScreen(),
+  late final List<Widget> _screens = [
+    const TripsScreen(),
+    MyBookingsScreen(
+      onExploreFlights: () {
+        setState(() => _selectedIndex = 0);
+      },
+    ),
+    const ProfileScreen(),
   ];
 
-  final List<String> _titles = const ['Trips', 'My Trip', 'Profile'];
+  final List<String> _titles = const ['Trips', 'My Bookings', 'Profile'];
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedIndex = widget.initialIndex;
+  }
 
   Future<void> _logout() async {
     try {
@@ -82,26 +97,6 @@ class _HomeScreenState extends State<HomeScreen> {
             label: 'Profile',
           ),
         ],
-      ),
-    );
-  }
-}
-
-
-class MyTripScreen extends StatefulWidget {
-  const new({super.key});
-
-  @override
-  State<MyTripScreen> createState() => _MyTripScreenState();
-}
-
-class _MyTripScreenState extends State<MyTripScreen> {
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Text(
-        'My Trip Screen',
-        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
       ),
     );
   }

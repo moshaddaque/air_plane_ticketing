@@ -14,6 +14,10 @@ import 'package:air_plane_ticketing/features/seats/data/datasources/seats_remote
 import 'package:air_plane_ticketing/features/seats/data/repositories/seats_repository_impl.dart';
 import 'package:air_plane_ticketing/features/seats/domain/repositories/seats_repository.dart';
 import 'package:air_plane_ticketing/features/seats/presentation/providers/seats_provider.dart';
+import 'package:air_plane_ticketing/features/bookings/data/datasources/booking_remote_data_source.dart';
+import 'package:air_plane_ticketing/features/bookings/data/repositories/booking_repository_impl.dart';
+import 'package:air_plane_ticketing/features/bookings/domain/repositories/booking_repository.dart';
+import 'package:air_plane_ticketing/features/bookings/presentation/providers/booking_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -116,6 +120,24 @@ class AirplaneTicketingApp extends StatelessWidget {
           create: (context) => SeatsProvider(context.read<SeatsRepository>()),
           update: (_, repository, previous) =>
               previous ?? SeatsProvider(repository),
+        ),
+
+        ProxyProvider2<
+          ApiClient,
+          SecureStorageService,
+          BookingRemoteDataSource
+        >(
+          update: (_, apiClient, storage, _) =>
+              BookingRemoteDataSource(apiClient, storage),
+        ),
+        ProxyProvider<BookingRemoteDataSource, BookingRepository>(
+          update: (_, source, _) => BookingRepositoryImpl(source),
+        ),
+        ChangeNotifierProxyProvider<BookingRepository, BookingProvider>(
+          create: (context) =>
+              BookingProvider(context.read<BookingRepository>()),
+          update: (_, repository, previous) =>
+              previous ?? BookingProvider(repository),
         ),
       ],
       child: MaterialApp(

@@ -10,4 +10,7 @@ class ApiConstants {
   static String tripSeats(int tripId) => '/api/v1/seats/trip/$tripId';
   static String availableTripSeats(int tripId) =>
       '/api/v1/seats/trip/$tripId/available';
+
+  static const String bookings = '/api/v1/bookings/';
+  static const String myBookings = '/api/v1/bookings/my';
 }
