@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../seats/presentation/screens/seats_screen.dart';
 import '../../domain/entities/trip.dart';
 import '../providers/trips_provider.dart';
 
@@ -58,7 +59,7 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
           return ListView(padding: const EdgeInsets.all(16), children: [
             ClipRRect(borderRadius: BorderRadius.circular(16),
               child: SizedBox(height: 190, child: image.isEmpty ? fallback() : Image.network(
-                image, fit: BoxFit.cover, errorBuilder: (_, __, ___) => fallback()))),
+                image, fit: BoxFit.cover, errorBuilder: (_, _, _) => fallback()))),
             const SizedBox(height: 18),
             Text(trip.flightNumber.isEmpty ? 'Flight #${trip.id}' : trip.flightNumber,
               style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
@@ -82,9 +83,22 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
               const Divider(height: 1),
               _Tile(icon: Icons.payments_outlined, label: 'Base price', value: '৳${trip.basePrice.toStringAsFixed(2)}'),
             ])),
-            const SizedBox(height: 16),
-            const Text('Booking and seat selection can be connected when those API details are available.',
-              textAlign: TextAlign.center),
+            const SizedBox(height: 20),
+            FilledButton.icon(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => SeatsScreen(trip: trip),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.airline_seat_recline_extra_rounded),
+              label: const Text('Select Seat & Book'),
+              style: FilledButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 14),
+              ),
+            ),
+            const SizedBox(height: 12),
           ]);
         },
       ),

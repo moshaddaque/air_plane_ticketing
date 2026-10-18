@@ -10,6 +10,10 @@ import 'package:air_plane_ticketing/features/trips/data/datasources/trips_remote
 import 'package:air_plane_ticketing/features/trips/data/repositories/trips_repository_impl.dart';
 import 'package:air_plane_ticketing/features/trips/domain/repositories/trips_repository.dart';
 import 'package:air_plane_ticketing/features/trips/presentation/providers/trips_provider.dart';
+import 'package:air_plane_ticketing/features/seats/data/datasources/seats_remote_data_source.dart';
+import 'package:air_plane_ticketing/features/seats/data/repositories/seats_repository_impl.dart';
+import 'package:air_plane_ticketing/features/seats/domain/repositories/seats_repository.dart';
+import 'package:air_plane_ticketing/features/seats/presentation/providers/seats_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -79,10 +83,10 @@ class AirplaneTicketingApp extends StatelessWidget {
         ),
 
         ProxyProvider<ApiClient, TripsRemoteDataSource>(
-          update: (_, apiClient, __) => TripsRemoteDataSource(apiClient),
+          update: (_, apiClient, _) => TripsRemoteDataSource(apiClient),
         ),
         ProxyProvider<TripsRemoteDataSource, TripsRepository>(
-          update: (_, source, __) => TripsRepositoryImpl(source),
+          update: (_, source, _) => TripsRepositoryImpl(source),
         ),
         ChangeNotifierProxyProvider<TripsRepository, TripsProvider>(
           create: (context) => TripsProvider(context.read<TripsRepository>()),
@@ -91,15 +95,27 @@ class AirplaneTicketingApp extends StatelessWidget {
         ),
 
         ProxyProvider<ApiClient, RoutesRemoteDataSource>(
-          update: (_, apiClient, __) => RoutesRemoteDataSource(apiClient),
+          update: (_, apiClient, _) => RoutesRemoteDataSource(apiClient),
         ),
         ProxyProvider<RoutesRemoteDataSource, RoutesRepository>(
-          update: (_, source, __) => RoutesRepositoryImpl(source),
+          update: (_, source, _) => RoutesRepositoryImpl(source),
         ),
         ChangeNotifierProxyProvider<RoutesRepository, RoutesProvider>(
           create: (context) => RoutesProvider(context.read<RoutesRepository>()),
           update: (_, repository, previous) =>
               previous ?? RoutesProvider(repository),
+        ),
+
+        ProxyProvider<ApiClient, SeatsRemoteDataSource>(
+          update: (_, apiClient, _) => SeatsRemoteDataSource(apiClient),
+        ),
+        ProxyProvider<SeatsRemoteDataSource, SeatsRepository>(
+          update: (_, source, _) => SeatsRepositoryImpl(source),
+        ),
+        ChangeNotifierProxyProvider<SeatsRepository, SeatsProvider>(
+          create: (context) => SeatsProvider(context.read<SeatsRepository>()),
+          update: (_, repository, previous) =>
+              previous ?? SeatsProvider(repository),
         ),
       ],
       child: MaterialApp(

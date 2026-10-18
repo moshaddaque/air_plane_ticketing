@@ -48,7 +48,7 @@ class TripCard extends StatelessWidget {
                 child: SizedBox(width: 72, height: 66,
                   child: image.isEmpty ? fallback() : Image.network(
                     image, fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => fallback(),
+                    errorBuilder: (_, _, _) => fallback(),
                   ),
                 ),
               ),

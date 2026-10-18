@@ -68,7 +68,7 @@ class RouteHorizontalCard extends StatelessWidget {
                     : Image.network(
                         image,
                         fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => fallback(),
+                        errorBuilder: (_, _, _) => fallback(),
                       ),
               ),
               Padding(

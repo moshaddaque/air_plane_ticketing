@@ -6,4 +6,8 @@ class ApiConstants {
 
   static const String login = '/api/v1/auth/login';
   static const String me = '/api/v1/auth/me';
+
+  static String tripSeats(int tripId) => '/api/v1/seats/trip/$tripId';
+  static String availableTripSeats(int tripId) =>
+      '/api/v1/seats/trip/$tripId/available';
 }

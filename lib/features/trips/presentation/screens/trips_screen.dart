@@ -259,7 +259,7 @@ class _RoutesSection extends StatelessWidget {
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               itemCount: provider.routes.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 12),
+              separatorBuilder: (_, _) => const SizedBox(width: 12),
               itemBuilder: (context, index) {
                 final route = provider.routes[index];
                 final selected = route.originCode.toUpperCase() ==
